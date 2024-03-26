@@ -1,31 +1,29 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
 using System;
 using System.Data;
-using System.Text.Json;
+using System.Diagnostics;
 
 namespace Rinoceronte.Db
 {
     public class DbMySql : IDisposable
     {
         private readonly ILogger<DbMySql> _logger;
+        private readonly IConfiguration _configuration;
 
-        public MySqlConnection Connection { get; set; }
+        public MySqlConnection Connection { get; private set; }
 
-        public DbMySql(ILogger<DbMySql> logger) 
+        public DbMySql(ILogger<DbMySql> logger, IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration;
 
             try
             {
-                string mySQLJsonFilePath = "appsettings.json";
-                string mySQLJsonString = System.IO.File.ReadAllText(mySQLJsonFilePath);
-                var mySQLJsonDocument = JsonDocument.Parse(mySQLJsonString);
-                var mySQLDatabases = mySQLJsonDocument.RootElement.GetProperty("Databases");
+                string connectionString = ObterConnectionStringMySQL();
 
-                string mySQLConnectionString = BuildMySQLConnectionString(mySQLDatabases.GetProperty("MySQL"));
-
-                Connection = new MySqlConnection(mySQLConnectionString);
+                Connection = new MySqlConnection(connectionString);
                 Connection.Open();
             }
             catch (Exception ex)
@@ -43,25 +41,50 @@ namespace Rinoceronte.Db
                 Connection.Dispose();
             }
         }
-
-        private string BuildMySQLConnectionString(JsonElement mySQLInfo)
+        public async Task<(bool, string, TimeSpan)> ExecutarQueryMySQL()
         {
-            string server = mySQLInfo.GetProperty("Server").GetString()!;
-            int port = mySQLInfo.GetProperty("Port").GetInt32();
-            string username = mySQLInfo.GetProperty("Username").GetString()!;
-            string password = mySQLInfo.GetProperty("Password").GetString()!;
-            string database = mySQLInfo.GetProperty("Database").GetString()!;
+            bool connected = false;
+            string maxCodigo = "";
+            TimeSpan executionTime = TimeSpan.Zero;
 
             try
             {
-                string mySQLConnectionString = $"Server={server};Port={port};Database={database};Uid={username};Pwd={password}";
-                return mySQLConnectionString;
+                await using (var connection = Connection)
+                {
+                    string sql = "SELECT * FROM DBPORTAL.RH_ADIANTAMENTO";
+                    using (var command = new MySqlCommand(sql, connection))
+                    {
+                        Stopwatch stopwatch = Stopwatch.StartNew();
+                        var result = await command.ExecuteScalarAsync();
+                        stopwatch.Stop();
+                        executionTime = stopwatch.Elapsed;
+
+                        maxCodigo = result != null ? result.ToString()! : string.Empty;
+                    }
+
+                    connected = true;
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError("Erro ao recuperar configurações: " + ex.Message);
-                throw;
+                _logger.LogError("Erro ao executar consulta MySQL: " + ex.Message);
             }
+
+            return (connected, maxCodigo, executionTime);
+        }
+        private string ObterConnectionStringMySQL()
+        {
+            string server = _configuration["Databases:MySQL:Server"];
+            int port = _configuration.GetValue<int>("Databases:MySQL:Port");
+            string username = _configuration["Databases:MySQL:Username"];
+            string password = _configuration["Databases:MySQL:Password"];
+            string database = _configuration["Databases:MySQL:Database"];
+
+            string connectionString = $"Server={server};Port={port};Database={database};Uid={username};Pwd={password}";
+            return connectionString;
         }
     }
 }
+
+
+    

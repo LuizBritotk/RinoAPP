@@ -41,47 +41,13 @@ namespace Rinoceronte.Pages
         {
             try
             {
-                (MySQLConnected, MySQLMaxCodigo, MySQLQueryExecutionTime) = await ExecutarQueryMySQL();
+                (MySQLConnected, MySQLMaxCodigo, MySQLQueryExecutionTime) = await _db.ExecutarQueryMySQL();
                 (BigQueryConnected, BigQueryMaxCodigo, BigQueryQueryExecutionTime) = await ExecutarQueryBigQuery();
             }
             catch (Exception ex)
             {
                 _logger.LogError("Erro ao executar consulta: " + ex.Message);
             }
-        }
-
-        private async Task<(bool, string, TimeSpan)> ExecutarQueryMySQL()
-        {
-            bool connected = false;
-            string maxCodigo = "";
-            TimeSpan executionTime = TimeSpan.Zero;
-
-            try
-            {
-                using (var connection = new MySqlConnection("Server=10.0.18.148;Port=3306;Database=dbportal;Uid=master;Pwd=qwe123sdfpoi"))
-                {
-                    await connection.OpenAsync();
-
-                    string sql = "SELECT * FROM DBPORTAL.RH_ADIANTAMENTO";
-                    using (var command = new MySqlCommand(sql, connection))
-                    {
-                        Stopwatch stopwatch = Stopwatch.StartNew();
-                        var result = await command.ExecuteScalarAsync();
-                        stopwatch.Stop();
-                        executionTime = stopwatch.Elapsed;
-
-                        maxCodigo = result != null ? result.ToString()! : string.Empty;
-                    }
-
-                    connected = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Erro ao executar consulta MySQL: " + ex.Message);
-            }
-
-            return (connected, maxCodigo, executionTime);
         }
 
         private async Task<(bool, string, TimeSpan)> ExecutarQueryBigQuery()
