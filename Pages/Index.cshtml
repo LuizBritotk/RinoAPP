@@ -1,0 +1,36 @@
+﻿@page
+@model Rinoceronte.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Resultados da Consulta</h1>
+    <br />
+    <br />
+    <hr />
+    <h2>MySQL</h2>
+    @if (Model.MySQLConnected)
+    {
+        <p>Conexão estabelecida com sucesso!</p>
+        <p>Resultado da consulta: @Model.MySQLMaxCodigo</p>
+        <p>Tempo de execução: @Model.MySQLQueryExecutionTime</p>
+    }
+    else
+    {
+        <p>Falha ao conectar ao MySQL.</p>
+    }
+    <br />
+    <br />
+    <h2>BigQuery</h2>
+    @if (Model.BigQueryConnected)
+    {
+        <p>Conexão estabelecida com sucesso!</p>
+        <p>Resultado da consulta: @Model.BigQueryMaxCodigo</p>
+        <p>Tempo de execução: @Model.BigQueryQueryExecutionTime</p>
+    }
+    else
+    {
+        <p>Falha ao conectar ao BigQuery.</p>
+    }
+</div>
