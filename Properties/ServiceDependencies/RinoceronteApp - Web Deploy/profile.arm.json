@@ -7,21 +7,21 @@
   "parameters": {
     "resourceGroupName": {
       "type": "string",
-      "defaultValue": "Grupo-Lojao",
+      "defaultValue": "cloud-shell-storage-eastus",
       "metadata": {
         "description": "Name of the resource group for the resource. It is recommended to put resources under same resource group for better tracking."
       }
     },
     "resourceGroupLocation": {
       "type": "string",
-      "defaultValue": "brazilsouth",
+      "defaultValue": "eastus",
       "metadata": {
         "description": "Location of the resource group. Resource groups could have different location than resources, however by default we use API versions from latest hybrid profile which support all locations for resource types we support."
       }
     },
     "resourceName": {
       "type": "string",
-      "defaultValue": "RinoApp",
+      "defaultValue": "RinoceronteApp",
       "metadata": {
         "description": "Name of the main resource to be created by this template."
       }
@@ -107,6 +107,24 @@
             }
           ]
         }
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2021-02-01",
+      "name": "[concat(parameters('resourceName'), '/web')]",
+      "location": "[parameters('resourceLocation')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('resourceName'))]"
+      ],
+      "properties": {
+        "netFrameworkVersion": "v5.0",
+        "appSettings": [
+          {
+            "name": "ASPNETCORE_ENVIRONMENT",
+            "value": "Production"
+          }
+        ]
       }
     }
   ]
