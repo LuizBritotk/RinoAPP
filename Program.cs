@@ -1,34 +1,27 @@
-using Rinoceronte.Db;
-using Rinoceronte.Interfaces;
-using Rinoceronte.Servicos;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Adiciona os serviços ao contêiner.
-builder.Services.AddRazorPages();
-builder.Services.AddScoped<DbMySql, DbMySql>();
-builder.Services.AddScoped<DbBigQuery, DbBigQuery>();
-builder.Services.AddScoped<IBigQueryServico, BigQueryServico>();
-
-// Configuração da configuração (Configuration).
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
-
-var app = builder.Build();
-
-if (!app.Environment.IsDevelopment())
+namespace YourNamespace
 {
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureLogging(logging =>
+                {
+                    logging.ClearProviders(); 
+                    logging.AddConsole();
+                    logging.AddDebug();
+                })
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+    }
 }
-
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthorization();
-
-app.MapRazorPages();
-
-app.Run();
