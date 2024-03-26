@@ -14,8 +14,7 @@ builder.Services.AddScoped<IBigQueryServico, BigQueryServico>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase))
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
