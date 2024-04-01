@@ -13,25 +13,25 @@ namespace Rinoceronte
         {
             string logsDirectory = Path.Combine("C:\\", "Logs");
 
-
-            //string downloadsPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-            //string logsDirectory = Path.Combine(downloadsPath, "Logs");
-
             if (!Directory.Exists(logsDirectory))
             {
                 Directory.CreateDirectory(logsDirectory);
             }
 
-
             Log.Logger = new LoggerConfiguration()
-                         .MinimumLevel.Debug()
-                         .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                         .Enrich.FromLogContext()
-                         .WriteTo.Console()
-                         .WriteTo.File(Path.Combine(logsDirectory, "logfile.txt")) 
-                         .CreateLogger();
-
+                             // Define o nível mínimo de log para Debug
+                             .MinimumLevel.Debug()
+                             // Sobrescreve o nível de log para o namespace "Microsoft" para Information
+                             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                             // Enriquece o log com informações de contexto
+                             .Enrich.FromLogContext()
+                             // Define a saída do log para o console
+                             .WriteTo.Console()
+                             // Define a saída do log para um arquivo com rotação diária
+                             // e limite ilimitado de arquivos de log antigos
+                             .WriteTo.File(GetLogFilePath(), rollingInterval: RollingInterval.Day, retainedFileCountLimit: null)
+                             // Cria o logger
+                            .CreateLogger();
 
             try
             {
@@ -47,11 +47,20 @@ namespace Rinoceronte
                 Log.CloseAndFlush();
             }
         }
+
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+
+        private static string GetLogFilePath()
+        {
+            string logsDirectory = Path.Combine("C:\\", "Logs");
+            string logFileName = $"logfile-{DateTime.Now:yyyy-MM-dd}.txt";
+
+            return Path.Combine(logsDirectory, logFileName);
+        }
     }
 }

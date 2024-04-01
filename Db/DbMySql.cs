@@ -32,7 +32,7 @@ namespace Rinoceronte.Db
             {
                 _logger.Error(ex, "Erro ao conectar ao MySQL: {ErrorMessage}");
                 Dispose();
-                throw; 
+                throw;
             }
         }
 
@@ -47,6 +47,8 @@ namespace Rinoceronte.Db
                 await using (var connection = Connection)
                 {
                     string sql = "SELECT * FROM DBPORTAL.RH_ADIANTAMENTO";
+                    _logger.Information("Executando consulta MySQL: {Query}", sql);
+
                     using (var command = new MySqlCommand(sql, connection))
                     {
                         Stopwatch stopwatch = Stopwatch.StartNew();
