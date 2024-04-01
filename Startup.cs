@@ -6,7 +6,7 @@ using Rinoceronte.Db;
 using Rinoceronte.Interfaces;
 using Rinoceronte.Servicos;
 
-namespace YourNamespace
+namespace Rinoceronte
 {
     public class Startup
     {
@@ -17,6 +17,7 @@ namespace YourNamespace
             services.AddScoped<DbMySql, DbMySql>();
             services.AddScoped<DbBigQuery, DbBigQuery>();
             services.AddScoped<IBigQueryServico, BigQueryServico>();
+            services.AddSingleton<Serilog.ILogger>(Serilog.Log.Logger);
         }
 
         // Este método é chamado pelo tempo de execução. Use este método para configurar o pipeline de solicitação HTTP.

@@ -1,20 +1,22 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using MySql.Data.MySqlClient;
+using Serilog;
 using System;
 using System.Data;
 using System.Diagnostics;
+using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
+using ILogger = Serilog.ILogger; 
 
 namespace Rinoceronte.Db
 {
     public class DbMySql : IDisposable
     {
-        private readonly ILogger<DbMySql> _logger;
+        private readonly ILogger _logger;
         private readonly IConfiguration _configuration;
 
         public MySqlConnection Connection { get; private set; }
 
-        public DbMySql(ILogger<DbMySql> logger, IConfiguration configuration)
+        public DbMySql(ILogger logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
@@ -28,19 +30,12 @@ namespace Rinoceronte.Db
             }
             catch (Exception ex)
             {
+                _logger.Error(ex, "Erro ao conectar ao MySQL: {ErrorMessage}");
                 Dispose();
-                throw new Exception("Erro ao conectar ao MySQL: " + ex.Message);
+                throw; 
             }
         }
 
-        public void Dispose()
-        {
-            if (Connection != null && Connection.State != ConnectionState.Closed)
-            {
-                Connection.Close();
-                Connection.Dispose();
-            }
-        }
         public async Task<(bool, string, TimeSpan)> ExecutarQueryMySQL()
         {
             bool connected = false;
@@ -67,11 +62,21 @@ namespace Rinoceronte.Db
             }
             catch (Exception ex)
             {
-                _logger.LogError("Erro ao executar consulta MySQL: " + ex.Message);
+                _logger.Error(ex, "Erro ao executar consulta MySQL: {ErrorMessage}");
             }
 
             return (connected, maxCodigo, executionTime);
         }
+
+        public void Dispose()
+        {
+            if (Connection != null && Connection.State != ConnectionState.Closed)
+            {
+                Connection.Close();
+                Connection.Dispose();
+            }
+        }
+
         private string ObterConnectionStringMySQL()
         {
             string server = _configuration["Databases:MySQL:Server"];
@@ -85,6 +90,3 @@ namespace Rinoceronte.Db
         }
     }
 }
-
-
-    

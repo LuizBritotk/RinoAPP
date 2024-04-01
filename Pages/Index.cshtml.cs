@@ -1,11 +1,8 @@
 ﻿using Google.Cloud.BigQuery.V2;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MySql.Data.MySqlClient;
 using Rinoceronte.Db;
 using Rinoceronte.Interfaces;
-using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Rinoceronte.Pages
 {
